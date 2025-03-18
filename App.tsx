@@ -4,8 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './src/pages/Login';
-import Home from './src/pages/Home';
-import Info from './src/pages/Info';
+import Home from './src/pages/home';
+import Chat from './src/pages/chat';
+import Notification from './src/pages/Notification';
+import Calendar from './src/pages/Calendar';
+import SignUp from './src/pages/SignUp';
+import Profile from './src/components/Profile'
+import FormChat from './src/pages/chat/FormChat'
 
 const Stack = createNativeStackNavigator();
 
@@ -28,11 +33,18 @@ const AppNavigator = () => {
     <Stack.Navigator>
       {isAuthenticated ? (
         <>
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="Info" component={Info} />
+          <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
+          <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }}/>
+          <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }}/>
+          <Stack.Screen name="FormChat" component={FormChat} options={{ headerShown: false }}/>
+          <Stack.Screen name="Calendar" component={Calendar} options={{ headerShown: false }}/>
+          <Stack.Screen name="Notification" component={Notification} options={{ headerShown: false }}/>
         </>
       ) : (
-        <Stack.Screen name="Login" component={Login} />
+        <>
+          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+          <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
+        </>
       )}
     </Stack.Navigator>
   );
