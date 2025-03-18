@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from "@react-native-firebase/firestore"
+import { getAuth, signOut } from '@react-native-firebase/auth';
 import { useAuth } from '../../AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { requestGalleryPermission } from '../uills/uploadImage';
 import { ImagePickerResponse, launchImageLibrary, Asset } from 'react-native-image-picker';
 
 const ProfileScreen: React.FC = () => {
+    const auth = getAuth();
     const [avatar, setAvatar] = useState<Asset | null>(null)
     const navigation = useNavigation();
     const { logout } = useAuth();
@@ -24,8 +27,11 @@ const ProfileScreen: React.FC = () => {
         navigation.navigate("Home" as never)
     }
     const handleLogout = async () => {
-        await AsyncStorage.removeItem('userToken');
-        logout();
+        // await AsyncStorage.removeItem('userToken');
+        // logout();
+        signOut(auth).then().catch(err => {
+          console.log('logout err', err);
+        })
     };
     const changeAvatar = async () => {
         await requestGalleryPermission();

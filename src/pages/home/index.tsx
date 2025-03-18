@@ -4,7 +4,6 @@ import { View, Text ,FlatList, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../../AuthContext';
 import Layout from '../../components/Layout';
 import InputCM from '../../components/common/InputCM';
 import ButtonCM from '../../components/common/ButtonCM';
@@ -91,13 +90,6 @@ const Home: React.FC = () => {
       navigation.navigate('Profile' as never)
     }
     const handleSearch = () => {}
-
-    const { logout } = useAuth();
-    const handleLogout = async () => {
-      await AsyncStorage.removeItem('userToken');
-      logout();
-    };
-
 
     const renderTasksItem = ({item}: {item: Task }) => (
       <View style={styles.completedTasksSlideItems}>

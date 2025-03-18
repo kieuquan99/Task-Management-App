@@ -11,39 +11,41 @@ import Calendar from './src/pages/Calendar';
 import SignUp from './src/pages/SignUp';
 import Profile from './src/components/Profile'
 import FormChat from './src/pages/chat/FormChat'
+import { ToastProvider } from "./src/components/Toast"
+// import firebase from "@react-native-firebase/app"
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth"
+import firestore from "@react-native-firebase/firestore"
 
 const Stack = createNativeStackNavigator();
-
 const AppNavigator = () => {
-  const { isAuthenticated, login } = useAuth();
+  const auth = getAuth();
+  const { isAuthenticated, login, logout } = useAuth();
   useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('tokennnn::::', token); 
-      
-      if (token) {
-        login();
+    onAuthStateChanged(auth, (user: any) => {
+      if (!!user) {
+        login()
+      } else {
+        logout()
       }
-    };
-
-    checkToken();
-  }, [login]);
-
+    });
+  }, [])
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{
+      headerShown: false
+    }}>
       {isAuthenticated ? (
         <>
-          <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
-          <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }}/>
-          <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }}/>
-          <Stack.Screen name="FormChat" component={FormChat} options={{ headerShown: false }}/>
-          <Stack.Screen name="Calendar" component={Calendar} options={{ headerShown: false }}/>
-          <Stack.Screen name="Notification" component={Notification} options={{ headerShown: false }}/>
+          <Stack.Screen name="Home" component={Home}/>
+          <Stack.Screen name="Profile" component={Profile}/>
+          <Stack.Screen name="Chat" component={Chat}/>
+          <Stack.Screen name="FormChat" component={FormChat}/>
+          <Stack.Screen name="Calendar" component={Calendar}/>
+          <Stack.Screen name="Notification" component={Notification}/>
         </>
       ) : (
         <>
-          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-          <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="SignUp" component={SignUp} />
         </>
       )}
     </Stack.Navigator>
@@ -52,11 +54,13 @@ const AppNavigator = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <NavigationContainer>
+          <AppNavigator/>
+        </NavigationContainer>
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

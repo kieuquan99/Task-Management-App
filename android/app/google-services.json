@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "644532814504",
+    "project_id": "react-native-cli-5315c",
+    "storage_bucket": "react-native-cli-5315c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:644532814504:android:b5eefea57d4c734e87f89d",
+        "android_client_info": {
+          "package_name": "com.reactnativeclitest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkBiREhWGCLP_S1C7GovJ7SaHUspghgy8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

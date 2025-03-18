@@ -10,7 +10,6 @@ interface TabBarProps {
 const BottomTabBar: React.FC<TabBarProps> = ({ onTabPress }) => {
     const route = useRoute();
     const [activeTab, setActiveTab] = useState('Home')
-    console.log('route', route.name);
     useEffect(() => {
         setActiveTab(route.name)
     }, [route.name])

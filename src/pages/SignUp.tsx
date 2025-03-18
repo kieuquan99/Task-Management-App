@@ -1,20 +1,52 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Text, StyleSheet, Alert, Image } from 'react-native';
+import { getAuth, createUserWithEmailAndPassword,  } from '@react-native-firebase/auth';
+import firestore from "@react-native-firebase/firestore"
 import { useNavigation } from '@react-navigation/native';
 import ButtonCM from '../components/common/ButtonCM';
 import InputCM from '../components/common/InputCM';
+import { useToast } from "../hooks/use-toast"
 
 const SignUp: React.FC = () => {
+    const auth = getAuth();
     const navigation = useNavigation();
+    const toast = useToast()
     const [username, setUsername] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
 
     const handleSignUp = async () => {
-        if (username && password) {
+        if (username && email && password) {
             try {
+                createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    auth.currentUser?.updateProfile({
+                      displayName: username,
+                    })
+                    toast.success("User account created & signed in!")
+                    firestore().collection("user").add({
+                        displayName: username,
+                        uid: userCredential.user.uid,
+                        email: userCredential.user.email,
+                        photoURL: userCredential.user.photoURL
+                    })
+                    setUsername("")
+                    setEmail("")
+                    setPassword("")
+                })
+                .catch(error => {
+                    if (error.code === 'auth/weak-password') {
+                        toast.error("Password should be at least 6 characters")
+                    }
+                    if (error.code === 'auth/invalid-email') {
+                        toast.error("That email address is invalid!")
+                    }
+                    if (error.code === 'auth/email-already-in-use') {
+                        toast.error("That email address is already in use!")
+                    }
+                });
             } catch (error) {
-                Alert.alert("Error", "Failed to save the token.");
+                toast.error("Failed to save the token.")
             }
         }
     };

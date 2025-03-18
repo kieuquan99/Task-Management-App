@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,130 +12,83 @@ import {
 import Layout from '../../components/Layout';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import firestore from "@react-native-firebase/firestore"
 import FormChat from './FormChat'
 
 interface ChatItem {
-  id: string;
-  name: string;
-  avatar: string;
-  message: string;
-  time: string;
-  unread: boolean;
+  uid: string,
+  displayName: string,
+  photoURL: string,
+  message: string,
+  time: string,
+  unread: boolean,
+}
+interface User {
+  uid: string;
+  displayName: string;
+  photoURL: string;
+  email: string;
 }
 
 const MessagesScreen: React.FC = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('Chat');
+  const [users, setUsers] = useState<ChatItem[]>([]);
   
-  const chatData: ChatItem[] = [
-    {
-      id: '1',
-      name: 'Olivia Anna',
-      avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '31 min',
-      unread: true,
-    },
-    {
-      id: '2',
-      name: 'Emma',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '43 min',
-      unread: true,
-    },
-    {
-      id: '3',
-      name: 'Robert Brown',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '8 Nov',
-      unread: false,
-    },
-    {
-      id: '4',
-      name: 'James',
-      avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '8 Dec',
-      unread: false,
-    },
-    {
-      id: '5',
-      name: 'Sophia',
-      avatar: 'https://randomuser.me/api/portraits/women/28.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '27 Dec',
-      unread: false,
-    },
-    {
-      id: '6',
-      name: 'Isabella',
-      avatar: 'https://randomuser.me/api/portraits/women/14.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '31 min',
-      unread: false,
-    },
-    {
-      id: '7',
-      name: 'Olivia Anna',
-      avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '31 min',
-      unread: true,
-    },
-    {
-      id: '8',
-      name: 'Emma',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '43 min',
-      unread: true,
-    },
-    {
-      id: '9',
-      name: 'Robert Brown',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '8 Nov',
-      unread: false,
-    },
-    {
-      id: '10',
-      name: 'James',
-      avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '8 Dec',
-      unread: false,
-    },
-    {
-      id: '11',
-      name: 'Sophia',
-      avatar: 'https://randomuser.me/api/portraits/women/28.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '27 Dec',
-      unread: false,
-    },
-    {
-      id: '12',
-      name: 'Isabella',
-      avatar: 'https://randomuser.me/api/portraits/women/14.jpg',
-      message: 'Hi, please check the last task, that I...',
-      time: '31 min',
-      unread: false,
-    },
-  ];
+  // const chatData: ChatItem[] = [
+  //   {
+  //     id: '1',
+  //     name: 'Olivia Anna',
+  //     avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
+  //     message: 'Hi, please check the last task, that I...',
+  //     time: '31 min',
+  //     unread: true,
+  //   },
+  //   {
+  //     name: 'Emma',
+  //     avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+  //     message: 'Hi, please check the last task, that I...',
+  //     time: '43 min',
+  //     unread: true,
+  //   },
+  //   {
+  //     id: '3',
+  //     name: 'Robert Brown',
+  //     avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+  //     message: 'Hi, please check the last task, that I...',
+  //     time: '8 Nov',
+  //     unread: false,
+  //   }
+  // ];
 
   const goToFormChat = (id: string) => {
     navigation.navigate("FormChat" as never)
   }
 
+  useEffect(() => {
+    firestore().collection("user").get().then(res => {
+      if(!res.empty){
+        const items: ChatItem[] = []
+        res.docs.map(x => {
+          items.push({
+            ...x.data(),
+            photoURL: 'https://randomuser.me/api/portraits/men/32.jpg',
+            message: 'Hi, please check the last task, that I...',
+            time: '30 min',
+            unread: true,
+          } as ChatItem)
+        }) 
+        setUsers(items)
+      }
+    })
+  }, [])
+
   const renderChatItem = ({ item }: { item: ChatItem }) => (
-    <TouchableOpacity style={styles.chatItem} onPress={() => goToFormChat(item.id)}>
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+    <TouchableOpacity style={styles.chatItem} onPress={() => goToFormChat(item.uid)}>
+      <Image source={{ uri: item.photoURL || '' }} style={styles.avatar} />
       <View style={styles.chatContent}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.message} numberOfLines={1}>{item.message}</Text>
+        <Text style={styles.name}>{item.displayName}</Text>
+        <Text style={styles.message} numberOfLines={1}>{item?.message}</Text>
       </View>
       <View style={styles.timeContainer}>
         <Text style={styles.time}>{item.time}</Text>
@@ -176,9 +129,9 @@ const MessagesScreen: React.FC = () => {
         </View>
         
         <FlatList
-          data={chatData}
+          data={users}
           renderItem={renderChatItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.uid}
           style={styles.chatList}
         />
         

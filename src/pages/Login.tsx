@@ -1,26 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 import { useAuth } from '../../AuthContext';
 import ButtonCM from '../components/common/ButtonCM';
 import InputCM from '../components/common/InputCM';
+import { useToast } from "../hooks/use-toast"
 
 const Login: React.FC = () => {
+    const toast = useToast()
     const navigation = useNavigation();
-    const [username, setUsername] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+
+
     const { login } = useAuth();
 
     const handleLogin = async () => {
-        if (username && password) {
-            const token = 'b1946ac92492d2347c6235b4d2611184'
-            try {
-                await AsyncStorage.setItem('userToken', token);
-                login(); 
-            } catch (error) {
-                Alert.alert("Error", "Failed to save the token.");
-            }
+        if (email && password) {
+            auth().signInWithEmailAndPassword(email, password).then().catch(err => {
+                toast.error(err.message)
+            })
+            // const token = 'b1946ac92492d234c7c6235b4d2611184'
+            // try {
+            //     await AsyncStorage.setItem('userToken', token);
+            //     login(); 
+            // } catch (error) {
+            //     Alert.alert("Error", "Failed to save the token.");
+            // }
         }
     };
 
@@ -36,9 +44,9 @@ const Login: React.FC = () => {
                     <Text style={styles.label}>Email Address</Text>
                     <InputCM
                         placeholder="Email"
-                        value={username}
+                        value={email}
                         iconName='address-book-o'
-                        onChangeText={setUsername}
+                        onChangeText={setEmail}
                     />
                 </View>
                 <View style={styles.input}>
