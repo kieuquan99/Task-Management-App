@@ -118,3 +118,29 @@
 //   details?: any // Chi tiết bổ sung về hành động
 // }
 
+// // 2. Types/Interfaces
+// interface User {
+//     id: string;
+//     name: string;
+//     avatar?: string;
+//   }
+  
+//   interface Conversation {
+//     id: string;
+//     participants: [
+//         {
+//             name: string,
+//             uid: string,
+//             lastMessage: string;
+//             lastMessageTimestamp: number;
+//         }
+//     ]
+//   }
+  
+//   interface Message {
+//     id: string;
+//     senderId: string;
+//     text: string;
+//     timestamp: firebase.firestore.Timestamp;
+//     read: boolean;
+//   }

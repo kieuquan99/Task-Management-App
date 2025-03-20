@@ -108,6 +108,7 @@ const TaskDetailsScreen = () => {
                 keyExtractor={item => item.id}
                 showsHorizontalScrollIndicator={false}
                 ItemSeparatorComponent={() => <View style={{width: 10}} />}
+                showsVerticalScrollIndicator={false}
                 renderItem={({item}) => (
                     <View key={item.id} style={styles.taskItem}>
                         <Text style={styles.taskName}>{item.name}</Text>

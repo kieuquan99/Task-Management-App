@@ -125,7 +125,7 @@ const NotificationsScreen: React.FC = () => {
           <View style={{ width: 40 }} />
         </View>
         
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* New Section */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>New</Text>

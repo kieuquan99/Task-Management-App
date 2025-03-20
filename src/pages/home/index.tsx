@@ -177,6 +177,7 @@ const Home: React.FC = () => {
                 showsHorizontalScrollIndicator={false}
                 ItemSeparatorComponent={() => <View style={{width: 10}} />}
                 renderItem={renderTasksItem}
+                showsVerticalScrollIndicator={false}
               />
           </View>
 
@@ -192,6 +193,7 @@ const Home: React.FC = () => {
                 keyExtractor={item => item.id}
                 style={styles.projectsList}
                 ItemSeparatorComponent={() => <View style={{height: 10}} />}
+                showsVerticalScrollIndicator={false}
               />
           </View>
       </Layout>

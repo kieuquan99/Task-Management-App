@@ -55,7 +55,7 @@ const SignUp: React.FC = () => {
         navigation.navigate('Login' as never);
     }
     return (
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.container}>
                 <Image style={styles.logo} source={require('../assets/images/logo.png')}/>
                 <Text style={styles.welcom}>Create your account</Text>

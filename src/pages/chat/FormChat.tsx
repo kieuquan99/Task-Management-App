@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,58 +9,186 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import firestore, { FieldValue } from '@react-native-firebase/firestore';
+import { getAuth } from "@react-native-firebase/auth"
+
+type RouteParams = {
+  uidOtherUser?: string;
+  displayNameOtherUser?: string;
+  photoURLOtherUser?: string;
+};
+
+
+type Message = {
+  id: string;
+  text: string;
+  createdAt: any;
+  userId: string;
+  userName: string;
+  imageUrl?: string,
+  type?: string,
+  sender: 'me' | 'other'
+};
 
 const FormChat: React.FC = () => {
+   const auth = getAuth();
+    const currentUser = auth.currentUser
     const navigation = useNavigation();
-    const [message, setMessage] = useState('');
+    const route = useRoute();
+
+
+
+    const { uidOtherUser, displayNameOtherUser, photoURLOtherUser } = route.params as RouteParams 
+    const scrollViewRef = useRef<ScrollView>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [messageInput, setMessageInput] = useState('');
     
-    const messages = [
-        {
-        id: 1,
-        text: 'Hi, please check the new task.',
-        sender: 'other',
-        time: '09:41',
-        },
-        {
-        id: 2,
-        text: 'Hi, please check the new task.',
-        sender: 'me',
-        time: 'Sent',
-        },
-        {
-        id: 3,
-        text: 'Got it. Thanks.',
-        sender: 'other',
-        time: '09:42',
-        },
-        {
-        id: 4,
-        text: 'Hi, please check the last task, that I have completed.',
-        sender: 'other',
-        time: '09:45',
-        },
-        {
-        id: 5,
-        type: 'image',
-        imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-9kUfmL3b9LeI1AfhNk2TItkiACTg3V.png',
-        sender: 'other',
-        time: '09:46',
-        },
-        {
-        id: 6,
-        text: 'Got it. Will check it soon.',
-        sender: 'me',
-        time: 'Sent',
-        },
-  ];
+    // const messages = [];
   const goToChat = () => {
     navigation.navigate("Chat" as never)
   }
 
+  const getIdChat = (uidCurrentUser: string, uidOtherUser: string) => {
+    if(uidCurrentUser > uidOtherUser) {
+      return uidOtherUser+'-'+uidCurrentUser
+    }else {
+      return uidCurrentUser+'-'+uidOtherUser
+    }
+  }
+
+  useEffect(() => {
+    if (!uidOtherUser) return;
+
+    const unsubscribe = firestore()
+      .collection('chats')
+      .doc(getIdChat(currentUser?.uid || '', uidOtherUser || ''))
+      .collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(
+        (querySnapshot) => {
+          
+          const messageList: Message[] = [];
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            messageList.push({
+              id: doc.id,
+              text: data.text,
+              createdAt: data.createdAt,
+              userId: data.userId,
+              userName: data.userName,
+              sender: currentUser?.uid == data.userId ? 'me' : 'other'
+            });
+          });
+          setMessages(messageList)
+          if(scrollViewRef.current) {
+            setTimeout(() => {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 50)
+          }
+          const dataLastMessage = querySnapshot.docs[0].data()
+          if(dataLastMessage.uid !== currentUser?.uid){
+            setReadLastMessage(dataLastMessage.text, dataLastMessage.createdAt)
+          }
+          // setLoading(false);
+        },
+        (error) => {
+          console.error('Error fetching messages:', error);
+          // setLoading(false);
+        }
+      );
+
+    return () => unsubscribe()
+  }, [uidOtherUser]);
+
+  const handleSend = async () => {
+    try {
+      // Add message to Firestore
+      const timetamp = firestore.FieldValue.serverTimestamp()
+
+      // set last message
+      setLastMessage(timetamp)
+
+      const messageRef = firestore()
+        .collection('chats')
+        .doc(getIdChat(currentUser?.uid || '', uidOtherUser || ''))
+        .collection('messages');
+
+      await messageRef.add({
+        text: messageInput,
+        createdAt: timetamp,
+        userId: currentUser?.uid,
+        userName: currentUser?.displayName,
+      });
+      setMessageInput("")
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 50)
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const setLastMessage = (timetamp: FieldValue) => {
+    const lastMessageRefofCurrentUser = firestore().collection('conversation').doc(currentUser?.uid).collection('data').doc(uidOtherUser || '')
+    const lastMessageRefofOtherUser = firestore().collection('conversation').doc(uidOtherUser || '').collection('data').doc(currentUser?.uid)
+
+    if(messages.length){
+      lastMessageRefofCurrentUser.update({
+        displayNameOtherUser: displayNameOtherUser,
+        uid: currentUser?.uid,
+        lastMessage: messageInput,
+        createdAt: timetamp,
+        displayName: currentUser?.uid,
+        unread: false
+      })
+      lastMessageRefofOtherUser.update({
+        displayNameOtherUser: currentUser?.displayName,
+        uid: currentUser?.uid,
+        lastMessage: messageInput,
+        createdAt: timetamp,
+        displayName: currentUser?.displayName,
+        unread: true
+      })
+    }else {
+      lastMessageRefofCurrentUser.set({
+        displayNameOtherUser: displayNameOtherUser,
+        uid: currentUser?.uid,
+        lastMessage: messageInput,
+        createdAt: timetamp,
+        displayName: currentUser?.uid,
+        unread: false
+      })
+      lastMessageRefofOtherUser.set({
+        displayNameOtherUser: currentUser?.displayName,
+        uid: currentUser?.uid,
+        lastMessage: messageInput,
+        createdAt: timetamp,
+        displayName: currentUser?.displayName,
+        unread: true
+      })
+    }
+  }
+
+  const setReadLastMessage = (lastMessage: string, timetamp: FieldValue) => {
+    const lastMessageRefofCurrentUser = firestore().collection('conversation').doc(currentUser?.uid).collection('data').doc(uidOtherUser || '')
+    const data = {
+      uid: uidOtherUser,
+      displayName: displayNameOtherUser,
+      lastMessage: lastMessage,
+      createdAt: timetamp,
+      unread: false
+    }
+    if(messages.length){
+      lastMessageRefofCurrentUser.update(data)
+    }else {
+      lastMessageRefofCurrentUser.set(data)
+    }
+  }
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -70,11 +198,11 @@ const FormChat: React.FC = () => {
         
         <View style={styles.profileContainer}>
           <Image 
-            source={{ uri: 'https://randomuser.me/api/portraits/women/32.jpg' }} 
+            source={{ uri: photoURLOtherUser }} 
             style={styles.profileImage} 
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>Olivia Anna</Text>
+            <Text style={styles.profileName}>{ displayNameOtherUser }</Text>
             <Text style={styles.profileStatus}>Online</Text>
           </View>
         </View>
@@ -90,10 +218,10 @@ const FormChat: React.FC = () => {
       </View>
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={styles.keyboardAvoid}
       >
-        <ScrollView style={styles.messagesContainer}>
+        <ScrollView style={styles.messagesContainer} ref={scrollViewRef} showsVerticalScrollIndicator={false}>
           {messages.map((msg) => (
             <View 
               key={msg.id} 
@@ -113,9 +241,9 @@ const FormChat: React.FC = () => {
                   </Text>
                 </View>
               )}
-              {msg.sender === 'me' && (
-                <Text style={styles.messageTime}>{msg.time}</Text>
-              )}
+              {/* {msg.sender === 'me' && (
+                <Text style={styles.messageTime}>msg.time</Text>
+              )} */}
             </View>
           ))}
         </ScrollView>
@@ -129,16 +257,16 @@ const FormChat: React.FC = () => {
             style={styles.input}
             placeholder="Type a message"
             placeholderTextColor="#8D8D8D"
-            value={message}
-            onChangeText={setMessage}
+            value={messageInput}
+            onChangeText={setMessageInput}
           />
           
-          <TouchableOpacity style={styles.sendButton}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
             <Icon name="send" size={24} color="#F9D949" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.micButton}>
-            <Icon name="microphone" size={24} color="#F9D949" />
+            <Icon name="microphone" size={24} color="#F9D949"/>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

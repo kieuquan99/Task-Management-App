@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, Image } from 'react-native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
@@ -22,13 +22,6 @@ const Login: React.FC = () => {
             auth().signInWithEmailAndPassword(email, password).then().catch(err => {
                 toast.error(err.message)
             })
-            // const token = 'b1946ac92492d234c7c6235b4d2611184'
-            // try {
-            //     await AsyncStorage.setItem('userToken', token);
-            //     login(); 
-            // } catch (error) {
-            //     Alert.alert("Error", "Failed to save the token.");
-            // }
         }
     };
 
@@ -36,43 +29,45 @@ const Login: React.FC = () => {
         navigation.navigate('SignUp' as never)
     }
     return (
-        <View style={styles.container}>
-            <Image style={styles.logo} source={require('../assets/images/logo.png')}/>
-            <Text style={styles.welcom}>Welcome Back!</Text>
-            <View style={styles.form}>
-                <View style={styles.input}>
-                    <Text style={styles.label}>Email Address</Text>
-                    <InputCM
-                        placeholder="Email"
-                        value={email}
-                        iconName='address-book-o'
-                        onChangeText={setEmail}
-                    />
+        <ScrollView>
+            <View style={styles.container}>
+                <Image style={styles.logo} source={require('../assets/images/logo.png')}/>
+                <Text style={styles.welcom}>Welcome Back!</Text>
+                <View style={styles.form}>
+                    <View style={styles.input}>
+                        <Text style={styles.label}>Email Address</Text>
+                        <InputCM
+                            placeholder="Email"
+                            value={email}
+                            iconName='address-book-o'
+                            onChangeText={setEmail}
+                        />
+                    </View>
+                    <View style={styles.input}>
+                        <Text style={styles.label}>Password</Text>
+                        <InputCM
+                            placeholder="password"
+                            value={password}
+                            iconName='lock'
+                            type='password'
+                            onChangeText={setPassword}
+                        />
+                    </View>
+                    <Text style={styles.forgot}>Forgot Password?</Text>
                 </View>
-                <View style={styles.input}>
-                    <Text style={styles.label}>Password</Text>
-                    <InputCM
-                        placeholder="password"
-                        value={password}
-                        iconName='lock'
-                        type='password'
-                        onChangeText={setPassword}
-                    />
+                <ButtonCM style={styles.buttonLogin} title="Log In" onPress={handleLogin} />
+                <View style={styles.orContinueWith}>
+                    <View style={styles.orContinueWithLineLeft}/>
+                    <Text style={styles.orContinueWithText}>Or continue with</Text>
+                    <View style={styles.orContinueWithLineRight}/>
                 </View>
-                <Text style={styles.forgot}>Forgot Password?</Text>
+                <ButtonCM style={styles.buttonLoginGG} title="Google" iconName="google" onPress={handleLogin} type="outline" />
+                <View style={styles.bottomPage}>
+                    <Text style={styles.bottomPageDontHave}>Don’t have an account?</Text>
+                    <Text style={styles.bottomPageSignUp} onPress={goToSignUp}>Sign Up</Text>
+                </View>
             </View>
-            <ButtonCM style={styles.buttonLogin} title="Log In" onPress={handleLogin} />
-            <View style={styles.orContinueWith}>
-                <View style={styles.orContinueWithLineLeft}/>
-                <Text style={styles.orContinueWithText}>Or continue with</Text>
-                <View style={styles.orContinueWithLineRight}/>
-            </View>
-            <ButtonCM style={styles.buttonLoginGG} title="Google" iconName="google" onPress={handleLogin} type="outline" />
-            <View style={styles.bottomPage}>
-                <Text style={styles.bottomPageDontHave}>Don’t have an account?</Text>
-                <Text style={styles.bottomPageSignUp} onPress={goToSignUp}>Sign Up</Text>
-            </View>
-        </View>
+        </ScrollView>
     );
 };
 

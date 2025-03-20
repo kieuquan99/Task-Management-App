@@ -163,7 +163,7 @@ const ScheduleScreen: React.FC = () => {
         </View>
         
         {/* Tasks List */}
-        <ScrollView style={styles.tasksContainer}>
+        <ScrollView style={styles.tasksContainer} showsVerticalScrollIndicator={false}>
           {tasks.map(renderTask)}
         </ScrollView>
       </SafeAreaView>

@@ -14,7 +14,7 @@ import FormChat from './src/pages/chat/FormChat'
 import { ToastProvider } from "./src/components/Toast"
 // import firebase from "@react-native-firebase/app"
 import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth"
-import firestore from "@react-native-firebase/firestore"
+// import firestore from "@react-native-firebase/firestore"
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {

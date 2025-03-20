@@ -13,14 +13,15 @@ import Layout from '../../components/Layout';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import firestore from "@react-native-firebase/firestore"
-import FormChat from './FormChat'
+import { getAuth  } from '@react-native-firebase/auth';
 
 interface ChatItem {
+  displayNameOtherUser: string,
   uid: string,
   displayName: string,
   photoURL: string,
-  message: string,
-  time: string,
+  lastMessage: string,
+  createdAt: string,
   unread: boolean,
 }
 interface User {
@@ -32,8 +33,11 @@ interface User {
 
 const MessagesScreen: React.FC = () => {
   const navigation = useNavigation();
+  const auth = getAuth()
+  const currentUser = auth.currentUser
   const [activeTab, setActiveTab] = useState('Chat');
-  const [users, setUsers] = useState<ChatItem[]>([]);
+
+  const [listChat, setListChat] = useState<ChatItem[]>([]);
   
   // const chatData: ChatItem[] = [
   //   {
@@ -60,38 +64,75 @@ const MessagesScreen: React.FC = () => {
   //     unread: false,
   //   }
   // ];
+  const goToFormChat = (chatItem: ChatItem | undefined) => {
 
-  const goToFormChat = (id: string) => {
-    navigation.navigate("FormChat" as never)
+    if(chatItem) {
+      navigation.navigate('FormChat', {
+        uidOtherUser: chatItem.uid,
+        displayNameOtherUser: chatItem.displayName,
+        photoURLOtherUser: chatItem.photoURL,
+      })
+    }
   }
-
   useEffect(() => {
-    firestore().collection("user").get().then(res => {
-      if(!res.empty){
-        const items: ChatItem[] = []
-        res.docs.map(x => {
-          items.push({
-            ...x.data(),
+    if (!currentUser?.uid) return;
+
+    const unsubscribe = firestore()
+    .collection('conversation').doc(currentUser?.uid).collection('data').onSnapshot(
+      (querySnapshot) => {
+        const chats: ChatItem[] = []
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log('datadatadatadatadata', doc.id, data);
+          chats.push({
+            uid: doc.id,
+            displayNameOtherUser: data.displayNameOtherUser,
+            displayName: data.displayName,
             photoURL: 'https://randomuser.me/api/portraits/men/32.jpg',
-            message: 'Hi, please check the last task, that I...',
-            time: '30 min',
-            unread: true,
-          } as ChatItem)
-        }) 
-        setUsers(items)
+            lastMessage: data.lastMessage,
+            createdAt: data.createdAt,
+            unread: data.unread,
+          } as ChatItem);
+        });
+        setListChat(chats)
+        // if(!chats.length) {
+        //   firestore().collection("user").get().then(res => {
+        //     if(!res.empty){
+        //       const items: ChatItem[] = []
+        //       res.docs.filter(x => x.data().uid !== auth?.currentUser?.uid).forEach(x => {
+        //         items.push({
+        //           ...x.data(),
+        //           photoURL: 'https://randomuser.me/api/portraits/men/32.jpg',
+        //           lastMessage: '',
+        //           createdAt: '30 min',
+        //           unread: true,
+        //         } as ChatItem)
+        //       })
+        //       setListChat(items)
+        //     }
+        //   })
+        // }
+        // setLoading(false);
+      },
+      (error) => {
+        console.error('Error fetching messages:', error);
+        // setLoading(false);
       }
-    })
-  }, [])
+    );
+     
+
+    return () => unsubscribe()
+  }, []);
 
   const renderChatItem = ({ item }: { item: ChatItem }) => (
-    <TouchableOpacity style={styles.chatItem} onPress={() => goToFormChat(item.uid)}>
+    <TouchableOpacity style={styles.chatItem} onPress={() => goToFormChat(item)}>
       <Image source={{ uri: item.photoURL || '' }} style={styles.avatar} />
       <View style={styles.chatContent}>
-        <Text style={styles.name}>{item.displayName}</Text>
-        <Text style={styles.message} numberOfLines={1}>{item?.message}</Text>
+        <Text style={styles.name}>{item.displayNameOtherUser}</Text>
+        <Text style={styles.message} numberOfLines={1}>{item?.lastMessage}</Text>
       </View>
       <View style={styles.timeContainer}>
-        <Text style={styles.time}>{item.time}</Text>
+        <Text style={styles.time}>time</Text>
         {item.unread && <View style={styles.unreadDot} />}
       </View>
     </TouchableOpacity>
@@ -103,9 +144,6 @@ const MessagesScreen: React.FC = () => {
         <StatusBar barStyle="light-content" backgroundColor="#1E2132" />
         
         <View style={styles.header}>
-          {/* <TouchableOpacity style={styles.backButton}>
-            <Icon name="chevron-left" size={24} color="white" />
-          </TouchableOpacity> */}
           <View style={{width: 24}} />
           <Text style={styles.headerTitle}>Messages</Text>
           <TouchableOpacity style={styles.composeButton}>
@@ -129,10 +167,11 @@ const MessagesScreen: React.FC = () => {
         </View>
         
         <FlatList
-          data={users}
+          data={listChat}
           renderItem={renderChatItem}
           keyExtractor={item => item.uid}
           style={styles.chatList}
+          showsVerticalScrollIndicator={false}
         />
         
         <View style={styles.buttonContainer}>

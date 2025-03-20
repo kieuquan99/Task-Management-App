@@ -55,7 +55,7 @@ const ProfileScreen: React.FC = () => {
                 <Text style={styles.headerTitle}>Profile</Text>
                 <View style={styles.placeholder} />
             </View>
-            <ScrollView style={styles.content}>
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 <View style={styles.profileImageContainer}>
                 <View style={styles.profileImageWrapper}>
                     <Image
